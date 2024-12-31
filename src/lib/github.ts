@@ -1,4 +1,26 @@
 import { Octokit } from "@octokit/rest";
+import { LRUCache } from 'lru-cache';
+
+// Cache configuration
+const cache = new LRUCache({
+  max: 100, // Maximum number of items
+  ttl: 1000 * 60 * 5, // Time to live: 5 minutes
+});
+
+// Rate limiting configuration
+const rateLimiter = {
+  lastCall: 0,
+  minInterval: 1000, // Minimum time between calls in milliseconds
+};
+
+async function rateLimit() {
+  const now = Date.now();
+  const timeSinceLastCall = now - rateLimiter.lastCall;
+  if (timeSinceLastCall < rateLimiter.minInterval) {
+    await new Promise(resolve => setTimeout(resolve, rateLimiter.minInterval - timeSinceLastCall));
+  }
+  rateLimiter.lastCall = Date.now();
+}
 
 export interface RepoStats {
   name: string;
@@ -15,11 +37,19 @@ export async function getGitHubStats(accessToken: string | undefined | null) {
     throw new Error("No access token provided");
   }
 
+  // Check cache first
+  const cacheKey = `stats-${accessToken}`;
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return cachedData;
+  }
+
   const octokit = new Octokit({
     auth: accessToken,
   });
   
   try {
+    await rateLimit(); // Apply rate limiting
     // Get user's repositories
     const { data: repos } = await octokit.repos.listForAuthenticatedUser({
       sort: "pushed",
@@ -168,7 +198,7 @@ export async function getGitHubStats(accessToken: string | undefined | null) {
       count: dailyContributions[day] || 0
     }));
 
-    return {
+    const result = {
       repos: repoStats.sort((a, b) => b.commits - a.commits),
       totalCommits: repoStats.reduce((sum, repo) => sum + repo.commits, 0),
       totalComments,
@@ -187,6 +217,10 @@ export async function getGitHubStats(accessToken: string | undefined | null) {
         avatarUrl: (await octokit.users.getAuthenticated()).data.avatar_url,
       },
     };
+
+    // Cache the result
+    cache.set(cacheKey, result);
+    return result;
   } catch (error) {
     console.error("Error fetching GitHub stats:", error);
     throw error;
