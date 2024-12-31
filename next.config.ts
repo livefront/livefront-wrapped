@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    // Add any image hosts you’re pulling from
+    domains: ["avatars.githubusercontent.com"],
+  },
 };
 
 export default nextConfig;
