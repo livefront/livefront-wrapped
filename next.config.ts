@@ -33,8 +33,9 @@ const securityHeaders = [
       style-src 'self' 'unsafe-inline';
       img-src 'self' https: data:;
       font-src 'self';
-      connect-src 'self' https://api.github.com;
+      connect-src 'self' https://api.github.com https://github.com http://localhost:* ws://localhost:*;
       frame-ancestors 'none';
+      form-action 'self' https://github.com;
     `.replace(/\s+/g, ' ').trim(),
   },
 ];
