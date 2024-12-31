@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
@@ -8,8 +8,8 @@ import { Play, Pause, SkipBack, SkipForward, Download } from "lucide-react";
 import { AnimatedBackground } from "@/components/animated-background";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { Stats } from "./types";
 import {
   ActiveDaysSlide,
@@ -25,7 +25,10 @@ interface StatsTimelineProps {
   stats: Stats;
 }
 
-const slideComponents: Record<SlideId, React.ComponentType<{ stats: Stats }>> = {
+const slideComponents: Record<
+  SlideId,
+  React.ComponentType<{ stats: Stats }>
+> = {
   "active-days": ActiveDaysSlide,
   "contributions-by-day": DailyActivitySlide,
   "contributions-by-type": ActivityTypesSlide,
@@ -40,8 +43,8 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const slideRef = useRef<HTMLDivElement>(null);
 
-  const INTERVAL = 5000;       // how long each slide is shown (ms)
-  const UPDATE_FREQ = 50;      // how often to update progress (ms)
+  const INTERVAL = 5000; // how long each slide is shown (ms)
+  const UPDATE_FREQ = 50; // how often to update progress (ms)
 
   function goToNextSlide() {
     setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
@@ -62,27 +65,28 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
     setIsDownloading(true);
     setIsPlaying(false);
 
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.top = '-9999px';
-    container.style.width = '800px';
-    container.style.background = '#0f172a';
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.top = "-9999px";
+    container.style.width = "800px";
+    container.style.background = "#0f172a";
     document.body.appendChild(container);
 
     try {
       const originalSlide = currentSlide;
       const slideImages: HTMLCanvasElement[] = [];
-      
+
       // Create header section
-      const headerContainer = document.createElement('div');
-      headerContainer.style.width = '800px';
-      headerContainer.style.height = '200px';
-      headerContainer.style.background = '#0f172a';
-      headerContainer.className = "flex flex-col items-center justify-center text-center p-8";
-      
-      const headerContent = document.createElement('div');
+      const headerContainer = document.createElement("div");
+      headerContainer.style.width = "800px";
+      headerContainer.style.height = "200px";
+      headerContainer.style.background = "#0f172a";
+      headerContainer.className =
+        "flex flex-col items-center justify-center text-center p-8";
+
+      const headerContent = document.createElement("div");
       headerContent.innerHTML = `
-        <h1 class="text-5xl font-bold text-white mb-2">GitHub Wrapped</h1>
+        <h1 class="text-5xl font-bold text-white mb-2">Livefront Wrapped</h1>
         <p class="text-xl text-white/60 mb-4">Your 2024 coding year in review</p>
         <div class="flex items-center gap-2">
           <img src="${stats.user?.avatarUrl || "/images/default-avatar.png"}" 
@@ -92,7 +96,7 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
       `;
       headerContainer.appendChild(headerContent);
       document.body.appendChild(headerContainer);
-      
+
       // Capture header
       const headerCanvas = await html2canvas(headerContainer, {
         scale: 2,
@@ -100,54 +104,57 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
         allowTaint: true,
         width: 800,
         height: 200,
-        backgroundColor: '#0f172a',
+        backgroundColor: "#0f172a",
       });
-      
+
       document.body.removeChild(headerContainer);
-      
+
       // Capture each slide
       for (let i = 0; i < slides.length; i++) {
         setCurrentSlide(i);
         // Wait for slide transition animation
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // Create a temporary container for this slide
-        const slideContainer = document.createElement('div');
-        slideContainer.className = "bg-black/50 backdrop-blur-sm border-white/10 text-white p-16 flex items-center justify-center";
-        slideContainer.style.height = '400px'; // Fixed height for all slides
-        slideContainer.style.width = '800px';  // Fixed width for all slides
-        
+        const slideContainer = document.createElement("div");
+        slideContainer.className =
+          "bg-black/50 backdrop-blur-sm border-white/10 text-white p-16 flex items-center justify-center";
+        slideContainer.style.height = "400px"; // Fixed height for all slides
+        slideContainer.style.width = "800px"; // Fixed width for all slides
+
         // Create root element for ReactDOM
-        const root = document.createElement('div');
-        root.style.width = '100%';  // Ensure root takes full width
+        const root = document.createElement("div");
+        root.style.width = "100%"; // Ensure root takes full width
         slideContainer.appendChild(root);
-        
+
         // Render the slide content
         const SlideComponent = slideComponents[slides[i].id];
-        const ReactDOM = (await import('react-dom/client')).default;
+        const ReactDOM = (await import("react-dom/client")).default;
         const slideRoot = ReactDOM.createRoot(root);
         slideRoot.render(<SlideComponent stats={stats} />);
-        
+
         // Wait for content to render
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         // Reset container and add the slide
-        container.innerHTML = '';
+        container.innerHTML = "";
         container.appendChild(slideContainer);
-        
+
         const canvas = await html2canvas(container, {
           scale: 2,
           useCORS: true,
           allowTaint: true,
           width: 800,
           height: 400,
-          backgroundColor: '#0f172a',
+          backgroundColor: "#0f172a",
           onclone: (clonedDoc) => {
-            const clonedContainer = clonedDoc.querySelector('[data-html2canvas-ignore]');
+            const clonedContainer = clonedDoc.querySelector(
+              "[data-html2canvas-ignore]"
+            );
             if (clonedContainer) clonedContainer.remove();
-          }
+          },
         });
-        
+
         slideImages.push(canvas);
         slideRoot.unmount();
       }
@@ -158,35 +165,36 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
       const HEADER_HEIGHT = 200;
       const PADDING = 16; // Consistent small gap between slides
 
-      const combinedCanvas = document.createElement('canvas');
+      const combinedCanvas = document.createElement("canvas");
       combinedCanvas.width = SLIDE_WIDTH;
-      combinedCanvas.height = HEADER_HEIGHT + (SLIDE_HEIGHT * slides.length) + (PADDING * slides.length);
-      
-      const ctx = combinedCanvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-      
+      combinedCanvas.height =
+        HEADER_HEIGHT + SLIDE_HEIGHT * slides.length + PADDING * slides.length;
+
+      const ctx = combinedCanvas.getContext("2d");
+      if (!ctx) throw new Error("Could not get canvas context");
+
       // Fill background
-      ctx.fillStyle = '#0f172a';
+      ctx.fillStyle = "#0f172a";
       ctx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
-      
+
       // Draw header
       ctx.drawImage(headerCanvas, 0, 0, SLIDE_WIDTH, HEADER_HEIGHT);
-      
+
       // Draw each slide vertically with consistent spacing
       slideImages.forEach((canvas, index) => {
-        const y = HEADER_HEIGHT + (index * (SLIDE_HEIGHT + PADDING));
+        const y = HEADER_HEIGHT + index * (SLIDE_HEIGHT + PADDING);
         ctx.drawImage(canvas, 0, y, SLIDE_WIDTH, SLIDE_HEIGHT);
       });
-      
+
       // Download the combined image
-      const link = document.createElement('a');
-      link.download = `github-wrapped-${stats.user?.login || 'user'}-2024.png`;
-      link.href = combinedCanvas.toDataURL('image/png', 1.0);
+      const link = document.createElement("a");
+      link.download = `github-wrapped-${stats.user?.login || "user"}-2024.png`;
+      link.href = combinedCanvas.toDataURL("image/png", 1.0);
       link.click();
-      
+
       setCurrentSlide(originalSlide);
     } catch (error) {
-      console.error('Error generating image:', error);
+      console.error("Error generating image:", error);
     } finally {
       document.body.removeChild(container);
       setIsDownloading(false);
@@ -225,7 +233,7 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
         {/* Logo Header */}
         <div className="text-center py-8">
           <h1 className="text-5xl font-bold text-white tracking-tight">
-            GitHub Wrapped
+            Livefront Wrapped
           </h1>
           <p className="text-xl text-white/60 mt-2">
             Your 2024 coding year in review
@@ -246,7 +254,7 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
               <h2 className="text-xl font-bold">
                 {stats.user?.login || "User"}
               </h2>
-              <p className="text-sm text-white/60">GitHub Wrapped 2024</p>
+              <p className="text-sm text-white/60">Livefront Wrapped 2024</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -258,7 +266,7 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
               className="text-white hover:bg-white/10 hover:text-white/80"
             >
               <Download className="h-4 w-4 mr-1" />
-              {isDownloading ? 'Saving...' : 'Download'}
+              {isDownloading ? "Saving..." : "Download"}
             </Button>
             <Button
               variant="ghost"
@@ -271,7 +279,10 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
           </div>
         </div>
 
-        <Card ref={slideRef} className="bg-black/50 backdrop-blur-sm border-white/10 text-white">
+        <Card
+          ref={slideRef}
+          className="bg-black/50 backdrop-blur-sm border-white/10 text-white"
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
@@ -330,7 +341,11 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
             onClick={() => setIsPlaying((prev) => !prev)}
             className="text-white hover:bg-white/10 hover:text-white/80"
           >
-            {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+            {isPlaying ? (
+              <Pause className="h-6 w-6" />
+            ) : (
+              <Play className="h-6 w-6" />
+            )}
           </Button>
           <Button
             variant="ghost"
@@ -344,4 +359,4 @@ export function StatsTimeline({ stats }: StatsTimelineProps) {
       </div>
     </div>
   );
-} 
+}

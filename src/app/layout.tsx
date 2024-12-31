@@ -7,7 +7,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GitHub Wrapped",
+  title: "Livefront Wrapped",
   description: "Your year on GitHub, wrapped up beautifully",
 };
 

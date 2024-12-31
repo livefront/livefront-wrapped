@@ -1,6 +1,6 @@
-# GitHub Wrapped
+# Livefront Wrapped
 
-Inspired by [GitHub Wrapped](https://github.com/avgupta456/github-trends)
+Inspired by [Livefront Wrapped](https://github.com/avgupta456/github-trends)
 
 Highlights your GitHub activity in a timeline format.
 
